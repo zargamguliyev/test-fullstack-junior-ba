@@ -30,5 +30,5 @@
 
 ## Автор
 
-Руслан Кулиев
+Заргам Гулиев
 Junior Business Analyst
