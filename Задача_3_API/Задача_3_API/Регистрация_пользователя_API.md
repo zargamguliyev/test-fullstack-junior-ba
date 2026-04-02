@@ -109,36 +109,3 @@ HTTP 201 Created
   "message": "Please verify reCaptcha to register!"
 }
 ```
-
----
-
-## Примеры
-
-Запрос
-
-POST /Account/v1/User
-
-{
-  "firstName": "ivan",
-  "lastName": "ivanov",
-  "userName": "ivan",
-  "password": "SecurePass123!",
-  "recaptchaToken": "03AGdBq25..."
-}
-
-Успех (201)
-
-{
-  "userID": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "username": "ivan",
-  "books": []
-}
-
-Ошибка 409 — User exists
-
-{ "code": "1204", "message": "User exists!" }
-
-Ошибка 400 — слабый пароль
-
-{ "code": "1300", "message": "Passwords must have at least one non alphanumeric character, one digit ('0'-'9'), one uppercase ('A'-'Z'), one lowercase ('a'-'z'), one special character and Password must be eight characters or longer." }
-
