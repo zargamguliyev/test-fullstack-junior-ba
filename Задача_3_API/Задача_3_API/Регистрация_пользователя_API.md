@@ -30,6 +30,38 @@ POST /api/v1/users/register
 
 ---
 
+## Выходные параметры — успех (201 Created)
+
+| Поле | Тип | Обязательность | Описание |
+|---|---|---:|---|
+| userID | string (uuid) | ✅ | уникальный ID созданного пользователя |
+| userName | string | ✅ | логин пользователя |
+| books | array | ✅ | список книг (при регистрации всегда `[]`) |
+
+---
+
+## Выходные параметры — ошибка
+
+| Поле | Тип | Обязательность | Описание |
+|---|---|---:|---|
+| code | string | ✅ | внутренний код ошибки |
+| message | string | ✅ | текст ошибки, показывается красным на форме |
+
+---
+
+## Коды ответов и ошибки
+
+| HTTP | Тип | Условие | Сообщение пользователю |
+|---|---|---|---|
+| 201 | успех | пользователь создан | `User Register Successfully.` |
+| 400 | клиентская | слабый пароль | `Passwords must have at least one non alphanumeric character...` |
+| 400 | клиентская | reCAPTCHA не пройдена | `Please verify reCaptcha to register!` |
+| 400 | клиентская | пустые обязательные поля | `UserName and Password required.` |
+| 409 | клиентская | UserName уже занят | `User exists!` |
+| 500 | серверная | внутренняя ошибка | `Internal server error. Please try again later.` |
+
+---
+
 ## Успешный ответ
 
 HTTP 201 Created
