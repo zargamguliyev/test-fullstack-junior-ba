@@ -1,0 +1,230 @@
+openapi: 3.0.3
+info:
+  title: Book Store — User Registration API
+  description: |
+    REST API для регистрации нового пользователя в Book Store.
+    Вызывается фронтендом при нажатии кнопки "Register".
+
+    Форма содержит поля: First Name, Last Name, UserName, Password и reCAPTCHA.
+
+    Экраны-источники:
+    - Пустая форма (Image 1)
+    - Заполненная форма (Image 2)
+    - Успех: алерт "User Register Successfully." (Image 3)
+    - Ошибка пароля (Image 4)
+    - Ошибка "User exists!" (Image 5)
+    - Ошибка reCAPTCHA (Image 6)
+  version: "1.0.0"
+
+servers:
+  - url: https://demoqa.com/Account/v1
+    description: DemoQA server (судя по алерту на скриншоте)
+
+paths:
+  /User:
+    post:
+      summary: Регистрация нового пользователя
+      description: |
+        Создаёт нового пользователя в системе Book Store.
+        Фронтенд вызывает этот метод при нажатии кнопки "Register".
+
+        Предусловия:
+        - Все поля заполнены
+        - reCAPTCHA пройдена (галочка "I'm not a robot" установлена)
+
+        Постусловие (успех):
+        - Показывается браузерный алерт "User Register Successfully."
+        - Пользователь может войти в систему
+
+      operationId: registerUser
+      tags:
+        - Account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              firstName: "ivan"
+              lastName: "ivanov"
+              userName: "ivan"
+              password: "SecurePass123!"
+              recaptchaToken: "03AGdBq25..."
+
+      responses:
+        '201':
+          description: |
+            Пользователь успешно создан.
+            Фронтенд отображает алерт: "User Register Successfully."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterSuccessResponse'
+              example:
+                userID: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                username: "ivan"
+                books: []
+
+        '400':
+          description: |
+            Ошибка валидации — клиентская ошибка.
+
+            Возможные случаи:
+            1. Пароль не соответствует требованиям сложности.
+            2. reCAPTCHA не пройдена.
+            3. Обязательное поле не заполнено.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                weakPassword:
+                  summary: Слабый пароль
+                  value:
+                    code: "1300"
+                    message: "Passwords must have at least one non alphanumeric character, one digit ('0'-'9'), one uppercase ('A'-'Z'), one lowercase ('a'-'z'), one special character and Password must be eight characters or longer."
+                recaptchaFailed:
+                  summary: reCAPTCHA не пройдена
+                  value:
+                    code: "1200"
+                    message: "Please verify reCaptcha to register!"
+                emptyField:
+                  summary: Не заполнено обязательное поле
+                  value:
+                    code: "1200"
+                    message: "UserName and Password required."
+
+        '409':
+          description: |
+            Пользователь с таким UserName уже существует — клиентская ошибка.
+            Фронтенд показывает красным: "User exists!"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "1204"
+                message: "User exists!"
+
+        '500':
+          description: |
+            Внутренняя ошибка сервера — серверная ошибка.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "0000"
+                message: "Internal server error. Please try again later."
+
+components:
+  schemas:
+
+    RegisterRequest:
+      type: object
+      description: Тело запроса для регистрации пользователя
+      required:
+        - firstName
+        - lastName
+        - userName
+        - password
+        - recaptchaToken
+      properties:
+        firstName:
+          type: string
+          description: Имя пользователя (поле "First Name" на форме)
+          minLength: 1
+          maxLength: 100
+          example: "ivan"
+        lastName:
+          type: string
+          description: Фамилия пользователя (поле "Last Name" на форме)
+          minLength: 1
+          maxLength: 100
+          example: "ivanov"
+        userName:
+          type: string
+          description: |
+            Логин пользователя (поле "UserName" на форме).
+            Должен быть уникальным в системе.
+          minLength: 1
+          maxLength: 50
+          example: "ivan"
+        password:
+          type: string
+          format: password
+          description: |
+            Пароль пользователя (поле "Password" на форме).
+
+            Требования (текст ошибки с формы):
+            - минимум 8 символов
+            - минимум одна цифра ('0'-'9')
+            - минимум одна заглавная буква ('A'-'Z')
+            - минимум одна строчная буква ('a'-'z')
+            - минимум один специальный/не буквенно-цифровой символ
+          minLength: 8
+          maxLength: 128
+          example: "SecurePass123!"
+        recaptchaToken:
+          type: string
+          description: |
+            Токен от Google reCAPTCHA v2, полученный после того,
+            как пользователь поставил галочку "I'm not a robot".
+            Бэкенд верифицирует токен через Google API.
+            Если токен отсутствует или невалиден — возвращается 400.
+          example: "03AGdBq25SxXT-..."
+
+    RegisterSuccessResponse:
+      type: object
+      description: |
+        Успешный ответ (HTTP 201).
+        После получения фронтенд показывает алерт "User Register Successfully."
+      required:
+        - userID
+        - username
+        - books
+      properties:
+        userID:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор созданного пользователя
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        username:
+          type: string
+          description: Логин созданного пользователя
+          example: "ivan"
+        books:
+          type: array
+          description: Список книг пользователя (при регистрации всегда пустой массив)
+          items:
+            type: object
+          example: []
+
+    ErrorResponse:
+      type: object
+      description: |
+        Структура ответа при ошибке.
+        Фронтенд читает поле message и отображает красным текстом под формой.
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: |
+            Внутренний код ошибки приложения (не HTTP-статус).
+            Коды (предположительные, на основе поведения UI):
+            - "1200" — ошибка валидации / reCAPTCHA не пройдена
+            - "1204" — пользователь уже существует
+            - "1300" — пароль не соответствует требованиям сложности
+          example: "1204"
+        message:
+          type: string
+          description: |
+            Читаемое сообщение об ошибке, отображаемое пользователю.
+            Тексты ошибок зафиксированы на скриншотах:
+            - "User exists!"
+            - "Please verify reCaptcha to register!"
+            - "Passwords must have at least one non alphanumeric character..."
+          example: "User exists!"
