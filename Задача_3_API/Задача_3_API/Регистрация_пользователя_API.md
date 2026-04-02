@@ -34,9 +34,9 @@ POST /api/v1/users/register
 
 | Поле | Тип | Обязательность | Описание |
 |---|---|---:|---|
-| userID | string (uuid) | ✅ | уникальный ID созданного пользователя |
-| userName | string | ✅ | логин пользователя |
-| books | array | ✅ | список книг (при регистрации всегда `[]`) |
+| userID | string (uuid) | Да | уникальный ID созданного пользователя |
+| userName | string | Да | логин пользователя |
+| books | array | Да | список книг (при регистрации всегда `[]`) |
 
 ---
 
@@ -44,8 +44,8 @@ POST /api/v1/users/register
 
 | Поле | Тип | Обязательность | Описание |
 |---|---|---:|---|
-| code | string | ✅ | внутренний код ошибки |
-| message | string | ✅ | текст ошибки, показывается красным на форме |
+| code | string | Да | внутренний код ошибки |
+| message | string | Да | текст ошибки, показывается красным на форме |
 
 ---
 
@@ -112,14 +112,33 @@ HTTP 201 Created
 
 ---
 
-## Пример запроса
+## Примеры
 
-```json
+Запрос
+
+POST /Account/v1/User
+
 {
   "firstName": "ivan",
   "lastName": "ivanov",
   "userName": "ivan",
-  "password": "Password@123",
-  "recaptchaToken": "03AFcWeA..."
+  "password": "SecurePass123!",
+  "recaptchaToken": "03AGdBq25..."
 }
-```
+
+Успех (201)
+
+{
+  "userID": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "username": "ivan",
+  "books": []
+}
+
+Ошибка 409 — User exists
+
+{ "code": "1204", "message": "User exists!" }
+
+Ошибка 400 — слабый пароль
+
+{ "code": "1300", "message": "Passwords must have at least one non alphanumeric character, one digit ('0'-'9'), one uppercase ('A'-'Z'), one lowercase ('a'-'z'), one special character and Password must be eight characters or longer." }
+
